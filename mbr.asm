@@ -8,23 +8,94 @@
 	org 0x7c00		; Our load address
 
 	mov ah, 0xe		; Configure BIOS teletype mode
+					; to write
+	mov bx, here	; May be 0 because org directive.
 
-	mov bx, 0		; May be 0 because org directive.
+request:				; Write a 0x0-terminated ascii string
+	mov al, [bx]	
+	int 0x10
+	cmp al, 0x0
+	je read
+	add bx, 0x1		
+	jmp request
 
-loop:				; Write a 0x0-terminated ascii string
-	mov al, [here + bx]	
+read:
+	mov bx, 0
+
+loopRead:
+	mov ah, 0x0
+	int 0x16
+
+	cmp al, 0xd
+	je calculate
+
+	mov ah, 0xe
+	int 0x10
+
+	; imul bx, 0xa
+	; sub al, 0x30
+
+	; add bl, al
+
+	movzx dx, al; Stores read digit in dx (zero-extendension from 8 to 16 bits)
+    sub dx, '0' ; Transforms ASCII into integer (not checking if it is between '0' and '9')
+
+    imul bx, 0xa; Multiplies the number being read by 10 so that newly read int can be added
+
+    add bx, dx  ; Adds digit that was just read
+
+	jmp loopRead
+	
+calculate:
+	mov ax, bx
+	mov dx, 0x0
+	mov cx, 0x2
+	div cx
+
+	mov cx, bx
+
+	cmp dx, 0x0
+	je even
+
+	mov bx, isOdd
+	jmp printAnswer	
+	
+even:
+	mov bx, isEven
+
+printAnswer:
+	mov dx, 0xa
+	mov ax, cx
+	div dx
+
+	mov cx, ax
+
+	mov al, dl
+	add al, 0x30
+
+	mov ah, 0xe
+	int 0x10
+
+	cmp cx, 0x0
+	je printCase
+
+	jmp printAnswer
+
+printCase:
+	mov ah, 0xe		
+	mov al, [bx]	
 	int 0x10
 	cmp al, 0x0
 	je end
-	add bx, 0x1		
-	jmp loop
+	add bx, 0x1
+	jmp printCase
 
 end:				; Jump forever (same as jmp end)
 	jmp $
 
-here:				; C-like NULL terminated string
-
-	db 'Hello world!', 0xd, 0xa, 0x0
+here: db 'Enter a number please', 0xd, 0xa, 0x0
+isEven: db 'eh par', 0xd, 0xa, 0x0
+isOdd: db 'eh impar', 0xd, 0xa, 0x0
 	
 	times 510 - ($-$$) db 0	; Pad with zeros
 	dw 0xaa55		; Boot signature
