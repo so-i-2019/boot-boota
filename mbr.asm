@@ -183,7 +183,7 @@ end:								; And they don't stop coming.
 ;; Strings used.
 FNRequest: db 'Enter the first number', 0xd, 0xa, 0x0
 SNRequest:	db 'Enter the second number', 0xd, 0xa, 0x0
-ORequest: db 'Enter the Operator ('+', '-', '*', '/')', 0xd, 0xa, 0x0
+ORequest: db 'Enter the Operator', 0xd, 0xa, 0x0
 ResultString: db 'The result is:', 0xd, 0xa, 0x0 
 ErrorString: db 'Nope... u doin it poopy, try again', 0xd, 0xa, 0x0
 	
